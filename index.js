@@ -139,7 +139,6 @@ app.delete(`${apiBase}/blogs`, logger, async (req, res) => {
         res.send(`{Erorr : ${error} }`);
     }
 });
-
 // Users route
 app.get(`${apiBase}/users`, logger, async (req, res) => {
     let query = req.query;
@@ -170,7 +169,7 @@ app.post(`${apiBase}/users`, logger, async (req, res) => {
         res.send(`{Erorr : ${error} }`);
     }
 });
-app.put(`${apiBase}/blogs`, logger, async (req, res) => {
+app.put(`${apiBase}/users`, logger, async (req, res) => {
     const query = req.query;
     try {
         if (query.id) {
@@ -180,17 +179,13 @@ app.put(`${apiBase}/blogs`, logger, async (req, res) => {
             const updatedData = req.body;
             const newData = {
                 $set: {
-                    title: updatedData.title,
+                    name: updatedData.name,
                     image_url: updatedData.image_url,
-                    desc_short: updatedData.desc_short,
-                    desc_long: updatedData.desc_long,
-                    category: updatedData.category,
-                    owner: updatedData.owner,
-                    time_added: updatedData.time_added,
-                    time_updated: updatedData.time_updated,
+                    email: updatedData.email,
+                    date_registered: updatedData.date_registered,
                 },
             };
-            const result = await blogCollection.updateOne(
+            const result = await userCollection.updateOne(
                 filter,
                 newData,
                 options
@@ -202,13 +197,84 @@ app.put(`${apiBase}/blogs`, logger, async (req, res) => {
         res.send(`{Erorr : ${error} }`);
     }
 });
-app.delete(`${apiBase}/blogs`, logger, async (req, res) => {
+app.delete(`${apiBase}/users`, logger, async (req, res) => {
     try {
         const query = req.query;
         if (query.id) {
             let id = query["id"];
             const filter = { _id: new ObjectId(id) };
-            const result = await blogCollection.deleteOne(filter);
+            const result = await userCollection.deleteOne(filter);
+            res.send(result);
+        }
+    } catch (error) {
+        console.log(`Error while routing ${req.url} : ${error}`);
+        res.send(`{Erorr : ${error} }`);
+    }
+});
+// Comments route
+app.get(`${apiBase}/comments`, logger, async (req, res) => {
+    let query = req.query;
+    try {
+        // Data soring/filtering based on Query
+        if (query.id) {
+            let id = query["id"];
+            query = { _id: new ObjectId(id) };
+            const result = await commentCollection.findOne(query);
+            res.send(result);
+        } else {
+            const cursor = commentCollection.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        }
+    } catch (error) {
+        console.log(`Error while routing ${req.url} : ${error}`);
+        res.send(`{Erorr : ${error} }`);
+    }
+});
+app.post(`${apiBase}/comments`, logger, async (req, res) => {
+    const doc = req.body;
+    try {
+        const result = await commentCollection.insertOne(doc);
+        res.send(`Inserted doc at id ${result.insertedId}`);
+    } catch (error) {
+        console.log(`Error while routing ${req.url} : ${error}`);
+        res.send(`{Erorr : ${error} }`);
+    }
+});
+app.put(`${apiBase}/comments`, logger, async (req, res) => {
+    const query = req.query;
+    try {
+        if (query.id) {
+            let id = query["id"];
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const updatedData = req.body;
+            const newData = {
+                $set: {
+                    blog: updatedData.blog,
+                    owner: updatedData.owner,
+                    desc: updatedData.desc,
+                },
+            };
+            const result = await commentCollection.updateOne(
+                filter,
+                newData,
+                options
+            );
+            res.send(result);
+        }
+    } catch (error) {
+        console.log(`Error while routing ${req.url} : ${error}`);
+        res.send(`{Erorr : ${error} }`);
+    }
+});
+app.delete(`${apiBase}/comments`, logger, async (req, res) => {
+    try {
+        const query = req.query;
+        if (query.id) {
+            let id = query["id"];
+            const filter = { _id: new ObjectId(id) };
+            const result = await commentCollection.deleteOne(filter);
             res.send(result);
         }
     } catch (error) {
