@@ -1,6 +1,6 @@
 // Imports
 const express = require("express");
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 require("dotenv").config();
 
 // Setup
@@ -27,9 +27,11 @@ async function run() {
     }
 }
 run().catch(console.dir);
-const database = client.db("book-collection");
-const userCollection = database.collection("users");
-const bookCollection = database.collection("books");
+const database = client.db("blogit");
+const blogCollection = database.collection("blogs");
+const commentCollection = database.collection("comments");
+const whishlistCollection = database.collection("wishlist");
+const userlistCollection = database.collection("users");
 
 // Middlewares
 app.use(express.json());
@@ -41,6 +43,99 @@ function logger(req, res, next) {
 }
 
 // Routes
+// Home route
 app.get("/", logger, async (req, res) => {
     res.send(`Server is running.......`);
+});
+// Blogs route
+const apiBase = "/api/v1";
+app.get(`${apiBase}/blogs`, logger, async (req, res) => {
+    let query = req.query;
+    try {
+        const sortFiled = {};
+        const filter = {};
+        // Data soring/filtering based on Query
+        if (query.id) {
+            let id = query["id"];
+            query = { _id: new ObjectId(id) };
+            const result = await blogCollection.findOne(query);
+            res.send(result);
+        } else {
+            if (query.category) {
+                filter.category = query.category;
+            }
+            if (query.owner) {
+                filter.owner = query.owner;
+            }
+            if (query.sort) {
+                if (query.sort.startsWith("-")) {
+                    sortFiled[query.sort.slice(1)] = -1;
+                } else {
+                    sortFiled[query.sort] = 1;
+                }
+            }
+            const cursor = blogCollection.find(filter).sort(sortFiled);
+            const result = await cursor.toArray();
+            res.send(result);
+        }
+    } catch (error) {
+        console.log(`Error while routing ${req.url} : ${error}`);
+        res.send(`{Erorr : ${error} }`);
+    }
+});
+app.post(`${apiBase}/blogs`, async (req, res) => {
+    const doc = req.body;
+    try {
+        const result = await blogCollection.insertOne(doc);
+        res.send(`Inserted doc at id ${result.insertedId}`);
+    } catch (error) {
+        console.log(`Error while routing ${req.url} : ${error}`);
+        res.send(`{Erorr : ${error} }`);
+    }
+});
+app.put(`${apiBase}/blogs`, logger, async (req, res) => {
+    const query = req.query;
+    try {
+        if (query.id) {
+            let id = query["id"];
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const updatedData = req.body;
+            const newData = {
+                $set: {
+                    title: updatedData.title,
+                    image_url: updatedData.image_url,
+                    desc_short: updatedData.desc_short,
+                    desc_long: updatedData.desc_long,
+                    category: updatedData.category,
+                    owner: updatedData.owner,
+                    time_added: updatedData.time_added,
+                    time_updated: updatedData.time_updated,
+                },
+            };
+            const result = await blogCollection.updateOne(
+                filter,
+                newData,
+                options
+            );
+            res.send(result);
+        }
+    } catch (error) {
+        console.log(`Error while routing ${req.url} : ${error}`);
+        res.send(`{Erorr : ${error} }`);
+    }
+});
+app.delete(`${apiBase}/blogs`, logger, async (req, res) => {
+    try {
+        const query = req.query;
+        if (query.id) {
+            let id = query["id"];
+            const filter = { _id: new ObjectId(id) };
+            const result = await blogCollection.deleteOne(filter);
+            res.send(result);
+        }
+    } catch (error) {
+        console.log(`Error while routing ${req.url} : ${error}`);
+        res.send(`{Erorr : ${error} }`);
+    }
 });
