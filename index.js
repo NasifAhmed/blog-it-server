@@ -215,14 +215,29 @@ app.delete(`${apiBase}/users`, logger, async (req, res) => {
 app.get(`${apiBase}/comments`, logger, async (req, res) => {
     let query = req.query;
     try {
+        const sortFiled = {};
+        const filter = {};
         // Data soring/filtering based on Query
         if (query.id) {
             let id = query["id"];
             query = { _id: new ObjectId(id) };
             const result = await commentCollection.findOne(query);
             res.send(result);
-        } else {
-            const cursor = commentCollection.find();
+        } else if (query.owner || query.blog) {
+            if (query.owner) {
+                filter.owner = query.owner;
+            }
+            if (query.blog) {
+                filter.blog = query.blog;
+            }
+            if (query.sort) {
+                if (query.sort.startsWith("-")) {
+                    sortFiled[query.sort.slice(1)] = -1;
+                } else {
+                    sortFiled[query.sort] = 1;
+                }
+            }
+            const cursor = commentCollection.find(filter).sort(sortFiled);
             const result = await cursor.toArray();
             res.send(result);
         }
@@ -286,6 +301,8 @@ app.delete(`${apiBase}/comments`, logger, async (req, res) => {
 app.get(`${apiBase}/wishlist`, logger, async (req, res) => {
     let query = req.query;
     try {
+        const sortFiled = {};
+        const filter = {};
         // Data soring/filtering based on Query
         if (query.id) {
             let id = query["id"];
@@ -301,7 +318,7 @@ app.get(`${apiBase}/wishlist`, logger, async (req, res) => {
                     sortFiled[query.sort] = 1;
                 }
             }
-            const cursor = blogCollection.find(filter).sort(sortFiled);
+            const cursor = wishlistCollection.find(filter).sort(sortFiled);
             const result = await cursor.toArray();
             res.send(result);
         }
