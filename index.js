@@ -2,6 +2,7 @@
 const express = require("express");
 const { MongoClient, ObjectId } = require("mongodb");
 require("dotenv").config();
+const cors = require("cors");
 
 // Setup
 const app = express();
@@ -35,6 +36,12 @@ const userCollection = database.collection("users");
 
 // Middlewares
 app.use(express.json());
+app.use(
+    cors({
+        origin: "http://localhost:5173",
+        // credentials: true,
+    })
+);
 
 // Utility
 function logger(req, res, next) {
