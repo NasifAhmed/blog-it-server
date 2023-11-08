@@ -189,119 +189,116 @@ app.delete(`${apiBase}/blogs`, logger, async (req, res) => {
     }
 });
 // Users route
-app.get(`${apiBase}/users`, middleman, logger, async (req, res) => {
-    let query = req.query;
-    try {
-        // Data soring/filtering based on Query
-        if (query.id) {
-            let id = query["id"];
-            query = { _id: new ObjectId(id) };
-            const result = await userCollection.findOne(query);
+// app.get(`${apiBase}/users`, middleman, logger, async (req, res) => {
+//     let query = req.query;
+//     try {
+//         // Data soring/filtering based on Query
+//         if (query.email) {
+//             const queryEmail = query.email;
+//             const loggedInEmail = req.user.email;
 
-            const queryEmail = result.email;
-            const loggedInEmail = req.user.email;
-
-            if (queryEmail !== loggedInEmail) {
-                return res.status(403).send({ message: "Forbidden access" });
-            } else {
-                res.send(result);
-            }
-        }
-        // Commenting out access to all user data. Can be enabled for troubleshoot in production
-        // else {
-        //     const cursor = userCollection.find();
-        //     const result = await cursor.toArray();
-        //     res.send(result);
-        // }
-        else {
-            res.status(404).send({ message: "Not Found" });
-        }
-    } catch (error) {
-        console.log(`Error while routing ${req.url} : ${error}`);
-    }
-});
-app.post(`${apiBase}/users`, logger, async (req, res) => {
-    const doc = req.body;
-    try {
-        const result = await userCollection.insertOne(doc);
-        res.send(`Inserted doc at id ${result.insertedId}`);
-    } catch (error) {
-        console.log(`Error while routing ${req.url} : ${error}`);
-    }
-});
-app.put(`${apiBase}/users`, middleman, logger, async (req, res) => {
-    const query = req.query;
-    try {
-        if (query.id) {
-            let id = query["id"];
-            const filter = { _id: new ObjectId(id) };
-            const user = await userCollection.findOne(filter);
-            if (user.email) {
-                const queryEmail = user.email;
-                const loggedInEmail = req.user.email;
-                if (queryEmail !== loggedInEmail) {
-                    return res
-                        .status(403)
-                        .send({ message: "Forbidden access" });
-                } else {
-                    const options = { upsert: true };
-                    const updatedData = req.body;
-                    const newData = {
-                        $set: {
-                            name: updatedData.name,
-                            image_url: updatedData.image_url,
-                            email: updatedData.email,
-                            date_registered: updatedData.date_registered,
-                        },
-                    };
-                    const result = await userCollection.updateOne(
-                        filter,
-                        newData,
-                        options
-                    );
-                    res.send(result);
-                }
-            } else {
-                res.status(404).send({
-                    message: "Not Found",
-                });
-            }
-        } else {
-            res.send({ message: "invalid" });
-        }
-    } catch (error) {
-        console.log(`Error while routing ${req.url} : ${error}`);
-    }
-});
-app.delete(`${apiBase}/users`, middleman, logger, async (req, res) => {
-    try {
-        if (query.id) {
-            let id = query["id"];
-            const filter = { _id: new ObjectId(id) };
-            const user = await userCollection.findOne(filter);
-            if (user.email) {
-                const queryEmail = user.email;
-                const loggedInEmail = req.user.email;
-                if (queryEmail !== loggedInEmail) {
-                    return res
-                        .status(403)
-                        .send({ message: "Forbidden access" });
-                } else {
-                    const result = await userCollection.deleteOne(filter);
-                    res.send(result);
-                }
-            } else {
-                res.status(404).send({
-                    message: "Not Found",
-                });
-            }
-        } else {
-            res.send({ message: "invalid" });
-        }
-    } catch (error) {
-        console.log(`Error while routing ${req.url} : ${error}`);
-    }
-});
+//             if (queryEmail !== loggedInEmail) {
+//                 return res.status(403).send({ message: "Forbidden access" });
+//             } else {
+//                 const result = await userCollection.findOne(query);
+//                 res.send(result);
+//             }
+//         }
+//         // Commenting out access to all user data. Can be enabled for troubleshoot in production
+//         // else {
+//         //     const cursor = userCollection.find();
+//         //     const result = await cursor.toArray();
+//         //     res.send(result);
+//         // }
+//         else {
+//             res.status(404).send({ message: "Not Found" });
+//         }
+//     } catch (error) {
+//         console.log(`Error while routing ${req.url} : ${error}`);
+//     }
+// });
+// app.post(`${apiBase}/users`, logger, async (req, res) => {
+//     const doc = req.body;
+//     try {
+//         const result = await userCollection.insertOne(doc);
+//         res.send(`Inserted doc at id ${result.insertedId}`);
+//     } catch (error) {
+//         console.log(`Error while routing ${req.url} : ${error}`);
+//     }
+// });
+// app.put(`${apiBase}/users`, middleman, logger, async (req, res) => {
+//     const query = req.query;
+//     try {
+//         if (query.id) {
+//             let id = query["id"];
+//             const filter = { _id: new ObjectId(id) };
+//             const user = await userCollection.findOne(filter);
+//             if (user.email) {
+//                 const queryEmail = user.email;
+//                 const loggedInEmail = req.user.email;
+//                 if (queryEmail !== loggedInEmail) {
+//                     return res
+//                         .status(403)
+//                         .send({ message: "Forbidden access" });
+//                 } else {
+//                     const options = { upsert: true };
+//                     const updatedData = req.body;
+//                     const newData = {
+//                         $set: {
+//                             name: updatedData.name,
+//                             image_url: updatedData.image_url,
+//                             email: updatedData.email,
+//                             date_registered: updatedData.date_registered,
+//                         },
+//                     };
+//                     const result = await userCollection.updateOne(
+//                         filter,
+//                         newData,
+//                         options
+//                     );
+//                     res.send(result);
+//                 }
+//             } else {
+//                 res.status(404).send({
+//                     message: "Not Found",
+//                 });
+//             }
+//         } else {
+//             res.send({ message: "invalid" });
+//         }
+//     } catch (error) {
+//         console.log(`Error while routing ${req.url} : ${error}`);
+//     }
+// });
+// app.delete(`${apiBase}/users`, middleman, logger, async (req, res) => {
+//     try {
+//         if (query.id) {
+//             let id = query["id"];
+//             const filter = { _id: new ObjectId(id) };
+//             const user = await userCollection.findOne(filter);
+//             if (user.email) {
+//                 const queryEmail = user.email;
+//                 const loggedInEmail = req.user.email;
+//                 if (queryEmail !== loggedInEmail) {
+//                     return res
+//                         .status(403)
+//                         .send({ message: "Forbidden access" });
+//                 } else {
+//                     const result = await userCollection.deleteOne(filter);
+//                     res.send(result);
+//                 }
+//             } else {
+//                 res.status(404).send({
+//                     message: "Not Found",
+//                 });
+//             }
+//         } else {
+//             res.send({ message: "invalid" });
+//         }
+//     } catch (error) {
+//         console.log(`Error while routing ${req.url} : ${error}`);
+//     }
+// });
 // Comments route
 app.get(`${apiBase}/comments`, logger, async (req, res) => {
     let query = req.query;
@@ -328,10 +325,10 @@ app.get(`${apiBase}/comments`, logger, async (req, res) => {
                     sortFiled[query.sort] = 1;
                 }
             }
-            const cursor = commentCollection.find(filter).sort(sortFiled);
-            const result = await cursor.toArray();
-            res.send(result);
         }
+        const cursor = commentCollection.find(filter).sort(sortFiled);
+        const result = await cursor.toArray();
+        res.send(result);
     } catch (error) {
         console.log(`Error while routing ${req.url} : ${error}`);
     }
@@ -388,8 +385,6 @@ app.delete(`${apiBase}/comments`, middleman, logger, async (req, res) => {
 app.get(`${apiBase}/wishlist`, middleman, logger, async (req, res) => {
     let query = req.query;
     try {
-        const sortFiled = {};
-        const filter = {};
         // Data soring/filtering based on Query
         if (query.id) {
             let id = query["id"];
@@ -397,17 +392,14 @@ app.get(`${apiBase}/wishlist`, middleman, logger, async (req, res) => {
             const result = await wishlistCollection.findOne(query);
             res.send(result);
         } else if (query.owner) {
-            let id = query.owner;
-            query = { _id: new ObjectId(id) };
-            const result = await userCollection.findOne(query);
-
-            const queryEmail = result.email;
+            const sortFiled = {};
+            const filter = {};
+            const queryEmail = query.owner;
             const loggedInEmail = req.user.email;
-
             if (queryEmail !== loggedInEmail) {
                 return res.status(403).send({ message: "Forbidden access" });
             } else {
-                filter.owner = id;
+                filter.owner = query.owner;
                 if (query.sort) {
                     if (query.sort.startsWith("-")) {
                         sortFiled[query.sort.slice(1)] = -1;
