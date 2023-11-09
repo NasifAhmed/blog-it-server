@@ -46,7 +46,8 @@ function logger(req, res, next) {
 app.use(express.json());
 app.use(
     cors({
-        origin: "http://localhost:5173",
+        origin: "https://assignment-11-d1439.web.app",
+        // origin: "http://localhost:5173",
         credentials: true,
     })
 );
@@ -311,7 +312,7 @@ app.get(`${apiBase}/comments`, logger, async (req, res) => {
             query = { _id: new ObjectId(id) };
             const result = await commentCollection.findOne(query);
             res.send(result);
-        } else if (query.owner || query.blog) {
+        } else if (query.owner || query.blog || query.sort) {
             if (query.owner) {
                 filter.owner = query.owner;
             }
