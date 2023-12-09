@@ -46,8 +46,8 @@ function logger(req, res, next) {
 app.use(express.json());
 app.use(
     cors({
-        origin: "https://assignment-11-d1439.web.app",
-        // origin: "http://localhost:5173",
+        // origin: "https://assignment-11-d1439.web.app",
+        origin: "http://localhost:5173",
         credentials: true,
     })
 );
