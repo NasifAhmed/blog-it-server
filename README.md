@@ -11,7 +11,8 @@
 ## Description
 
 This is the server for Blog it website
-Notable features : 
+
+#### Notable features : 
 - The server is hosted on vercel
 - It can handle all CRUD http calls
 - It is designed with REST api design and naming conventions in mind
